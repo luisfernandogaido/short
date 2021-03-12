@@ -9,7 +9,7 @@ import (
 func TestUser_Save(t *testing.T) {
 	setup()
 	u := User{
-		Name: "Gaido",
+		Name: "Adriano2",
 	}
 	if err := u.Save(); err != nil {
 		t.Fatal(err)
@@ -51,7 +51,7 @@ func TestUser_RegenerateToken(t *testing.T) {
 
 func TestUser_Delete(t *testing.T) {
 	setup()
-	u, err := NewUser("604ada317b20db652c543ad8")
+	u, err := NewUser("604b5813a6a7de7d4cd6cfce")
 	if err != nil {
 		t.Fatal(err)
 	}

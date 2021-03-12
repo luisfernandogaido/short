@@ -12,17 +12,22 @@ import (
 )
 
 var (
-	root string
+	root   string
+	domain string
 )
 
-func Serve(addr string, mongoURI string, tokenRoot string) error {
+func Serve(addr string, mongoURI string, tokenRoot string, redisURI string, dom string) error {
 	root = tokenRoot
-	if err := model.Ini(mongoURI); err != nil {
+	domain = dom
+	if err := model.Ini(mongoURI, redisURI); err != nil {
 		return fmt.Errorf("server: %w", err)
 	}
-
 	http.HandleFunc("/hello", hello)
 	http.HandleFunc("/users", autRoot(users))
+	http.HandleFunc("/users/", autRoot(user))
+	http.HandleFunc("/users/regen-token/", autRoot(userRegenerateToken))
+	http.HandleFunc("/links", aut(links))
+	http.HandleFunc("/", redirect)
 
 	return http.ListenAndServe(addr, nil)
 }

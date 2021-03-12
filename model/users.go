@@ -46,13 +46,21 @@ func (u *User) Save() error {
 			return fmt.Errorf("users save: %w", err)
 		}
 		u.Token = token
-		if _, err := db.Collection("users").InsertOne(nil, u); err != nil {
+		if ior, err := db.Collection("users").InsertOne(nil, u); err != nil {
 			return fmt.Errorf("users save: %w", err)
+		} else {
+			u.Id = ior.InsertedID.(primitive.ObjectID)
+		}
+		if err := loadTokens(); err != nil {
+			return err
 		}
 		return nil
 	}
 	if err := db.Collection("users").FindOneAndReplace(nil, bson.D{{"_id", u.Id}}, u).Err(); err != nil {
 		return fmt.Errorf("users save: %w", err)
+	}
+	if err := loadTokens(); err != nil {
+		return err
 	}
 	return nil
 }
@@ -65,6 +73,12 @@ func (u *User) RegenerateToken() error {
 	u.Token = token
 	if err := u.Save(); err != nil {
 		return fmt.Errorf("users regeneratetoken: %w", err)
+	}
+	if err := loadTokens(); err != nil {
+		return err
+	}
+	if err := loadTokens(); err != nil {
+		return err
 	}
 	return nil
 }
