@@ -22,6 +22,7 @@ func Serve(addr string, mongoURI string, tokenRoot string, redisURI string, dom 
 	if err := model.Ini(mongoURI, redisURI); err != nil {
 		return fmt.Errorf("server: %w", err)
 	}
+
 	http.HandleFunc("/hello", hello)
 	http.HandleFunc("/users", autRoot(users))
 	http.HandleFunc("/users/", autRoot(user))
