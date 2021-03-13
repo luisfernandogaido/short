@@ -19,6 +19,7 @@ var (
 func Serve(addr string, mongoURI string, tokenRoot string, redisURI string, dom string) error {
 	root = tokenRoot
 	domain = dom
+
 	if err := model.Ini(mongoURI, redisURI); err != nil {
 		return fmt.Errorf("server: %w", err)
 	}

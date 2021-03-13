@@ -13,6 +13,7 @@ func links(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		var body struct {
 			Destination string `json:"destination"`
+			Hash        string `json:"hash"`
 		}
 		if err := readJson(r, &body); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -24,8 +25,12 @@ func links(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		link, err := model.LinkCreate(body.Destination, u)
+		link, err := model.LinkCreate(body.Destination, body.Hash, u)
 		if err != nil {
+			if errors.Is(err, model.ErrDuplicated) {
+				http.Error(w, "hash em uso", http.StatusConflict)
+				return
+			}
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -41,6 +46,9 @@ func links(w http.ResponseWriter, r *http.Request) {
 }
 
 func redirect(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		go loga(r)
+	}()
 	switch r.Method {
 	case "GET":
 		hash := strings.Replace(r.URL.Path, "/", "", 1)

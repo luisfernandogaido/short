@@ -23,18 +23,27 @@ type Link struct {
 	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
 }
 
-func LinkCreate(dest string, u User) (Link, error) {
+func LinkCreate(dest string, hash string, u User) (Link, error) {
+	if hash == "" {
+		hash = generateHash()
+	}
 	link := Link{
 		Destination: dest,
-		Hash:        generateHash(),
+		Hash:        hash,
 		User:        u.Name,
 		CreatedAt:   time.Now(),
 	}
 	ior, err := db.Collection("links").InsertOne(nil, link)
 	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			return Link{}, fmt.Errorf("link create: %w", ErrDuplicated)
+		}
 		return Link{}, fmt.Errorf("link create: %w", err)
 	}
 	link.Id = ior.InsertedID.(primitive.ObjectID)
+	go func() {
+		db.Collection("links_log").InsertOne(nil, link)
+	}()
 	return link, nil
 }
 

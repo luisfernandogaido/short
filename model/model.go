@@ -15,10 +15,11 @@ import (
 )
 
 var (
-	db          *mongo.Database
-	rdb         *redis.Client
-	ctx         = context.Background()
-	ErrNotFound = errors.New("not found")
+	db            *mongo.Database
+	rdb           *redis.Client
+	ctx           = context.Background()
+	ErrNotFound   = errors.New("not found")
+	ErrDuplicated = errors.New("duplicated")
 )
 
 func init() {
