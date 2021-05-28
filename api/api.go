@@ -12,13 +12,15 @@ import (
 )
 
 var (
-	root   string
-	domain string
+	root              string
+	domain            string
+	authorizedDomains []string
 )
 
-func Serve(addr string, mongoURI string, tokenRoot string, redisURI string, dom string) error {
+func Serve(addr string, mongoURI string, tokenRoot string, redisURI string, dom string, ads []string) error {
 	root = tokenRoot
 	domain = dom
+	authorizedDomains = ads
 
 	if err := model.Ini(mongoURI, redisURI); err != nil {
 		return fmt.Errorf("server: %w", err)

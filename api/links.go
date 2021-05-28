@@ -25,6 +25,17 @@ func links(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		domainFound := false
+		for _, ad := range authorizedDomains {
+			if strings.Contains(body.Destination, ad) {
+				domainFound = true
+				break
+			}
+		}
+		if !domainFound {
+			http.Error(w, "destino não autorizado", http.StatusForbidden)
+			return
+		}
 		link, err := model.LinkCreate(body.Destination, body.Hash, u)
 		if err != nil {
 			if errors.Is(err, model.ErrDuplicated) {
