@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/luisfernandogaido/short/model"
 )
@@ -14,6 +15,7 @@ func links(w http.ResponseWriter, r *http.Request) {
 		var body struct {
 			Destination string `json:"destination"`
 			Hash        string `json:"hash"`
+			TtlDays     int    `json:"ttl_days"`
 		}
 		if err := readJson(r, &body); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -36,7 +38,7 @@ func links(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "destino não autorizado", http.StatusForbidden)
 			return
 		}
-		link, err := model.LinkCreate(body.Destination, body.Hash, u)
+		link, err := model.LinkCreate(body.Destination, body.Hash, body.TtlDays, u)
 		if err != nil {
 			if errors.Is(err, model.ErrDuplicated) {
 				http.Error(w, "hash em uso", http.StatusConflict)
@@ -46,9 +48,10 @@ func links(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		res := struct {
-			Link        string `json:"link"`
-			Destination string `json:"destination"`
-		}{domain + "/" + link.Hash, link.Destination}
+			Link        string    `json:"link"`
+			Destination string    `json:"destination"`
+			ExpiresAt   time.Time `json:"expires_at"`
+		}{domain + "/" + link.Hash, link.Destination, link.ExpiresAt.Local()}
 		printJson(w, res)
 	default:
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)

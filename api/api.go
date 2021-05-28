@@ -26,6 +26,8 @@ func Serve(addr string, mongoURI string, tokenRoot string, redisURI string, dom 
 		return fmt.Errorf("server: %w", err)
 	}
 
+	go model.LinkPurge()
+
 	http.HandleFunc("/hello", hello)
 	http.HandleFunc("/users", autRoot(users))
 	http.HandleFunc("/users/", autRoot(user))

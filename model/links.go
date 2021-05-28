@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"strings"
 	"time"
@@ -12,7 +13,9 @@ import (
 )
 
 const (
-	lenHash = 7
+	lenHash        = 7
+	purgePeriod    = 3600
+	defaultTtlDays = 3650
 )
 
 type Link struct {
@@ -21,17 +24,23 @@ type Link struct {
 	Destination string             `json:"destination" bson:"destination"`
 	User        string             `json:"user"`
 	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
+	ExpiresAt   time.Time          `json:"expires_at" bson:"expires_at"`
 }
 
-func LinkCreate(dest string, hash string, u User) (Link, error) {
+func LinkCreate(dest string, hash string, ttlDays int, u User) (Link, error) {
 	if hash == "" {
 		hash = generateHash()
 	}
+	if ttlDays == 0 {
+		ttlDays = defaultTtlDays
+	}
+	now := time.Now()
 	link := Link{
 		Destination: dest,
 		Hash:        hash,
 		User:        u.Name,
-		CreatedAt:   time.Now(),
+		CreatedAt:   now,
+		ExpiresAt:   now.Add(time.Hour * 24 * time.Duration(ttlDays)),
 	}
 	ior, err := db.Collection("links").InsertOne(nil, link)
 	if err != nil {
@@ -56,6 +65,20 @@ func LinkGet(hash string) (Link, error) {
 		return Link{}, fmt.Errorf("model link get: %w", err)
 	}
 	return link, nil
+}
+
+func LinkPurge() {
+	for {
+		filter := bson.D{
+			{"expires_at", bson.D{
+				{"$lt", time.Now()},
+			}},
+		}
+		if _, err := db.Collection("links").DeleteMany(nil, filter); err != nil {
+			log.Printf("link purge: %v\n", err)
+		}
+		time.Sleep(time.Second * purgePeriod)
+	}
 }
 
 func generateHash() string {
