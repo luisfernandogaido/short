@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -52,6 +53,7 @@ func links(w http.ResponseWriter, r *http.Request) {
 			Destination string    `json:"destination"`
 			ExpiresAt   time.Time `json:"expires_at"`
 		}{domain + "/" + link.Hash, link.Destination, link.ExpiresAt.Local()}
+		fmt.Printf("info: link recebido %v link gerado %v\n", link.Destination, domain+"/"+link.Hash)
 		printJson(w, res)
 	default:
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
