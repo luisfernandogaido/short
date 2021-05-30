@@ -15,7 +15,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"destination\": \"https://www.chess.com/\",\r\n    \"hash\": \"\"\r\n}",
+              "raw": "{\r\n    \"destination\": \"https://www.youtube.com/watch?v=bEmJqx2s3nw\",\r\n    \"hash\": \"\",\r\n    \"ttl_days\": 1\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -31,7 +31,7 @@
                 "links"
               ]
             },
-            "description": "Solicita o registro de um link mapeado para `destination`.\n\nSe `hash` for vazio ou omitido, é devolvido um link com um hash aleatório.\n\nSe `hash` for informado e ainda não existir na base, é devolvido um link com o hash. Se `hash` já existir, um erro **409 Conflict** é retornado."
+            "description": "Solicita o registro de um link mapeado para `destination`.\n\nSe `hash` for vazio ou omitido, é devolvido um link com um hash aleatório.\n\nSe `hash` for informado e ainda não existir na base, é devolvido um link com o hash. Se `hash` já existir, um erro **409 Conflict** é retornado.\n\n`ttl_days` é o tempo em dias que o link permanecerá na base. Passado esse tempo, ele é excluído. Se for informado `0` ou omitido, permanecerá na base por 10 anos."
           },
           "response": []
         }
