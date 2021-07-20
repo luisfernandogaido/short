@@ -83,10 +83,15 @@ func LinkPurge() {
 
 func generateHash() string {
 	chars := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_"
-	var hash strings.Builder
-	for i := 0; i < lenHash; i++ {
-		i := rand.Intn(64)
-		hash.WriteString(chars[i : i+1])
+	for {
+		var hash strings.Builder
+		for i := 0; i < lenHash; i++ {
+			i := rand.Intn(64)
+			hash.WriteString(chars[i : i+1])
+		}
+		s := hash.String()
+		if !strings.HasSuffix(s, "-") {
+			return s
+		}
 	}
-	return hash.String()
 }

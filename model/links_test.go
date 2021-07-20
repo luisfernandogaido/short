@@ -17,7 +17,7 @@ func TestLinkCreate(t *testing.T) {
 		Name:  "gaido",
 		Token: "umtok",
 	}
-	link, err := LinkCreate("https://google.com", "", u)
+	link, err := LinkCreate("https://google.com", "", 1, u)
 	if err != nil {
 		t.Fatal(err)
 	}
