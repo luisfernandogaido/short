@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -35,21 +36,44 @@ func LinkCreate(dest string, hash string, ttlDays int, u User) (Link, error) {
 		ttlDays = defaultTtlDays
 	}
 	now := time.Now()
+	expiresAt := now.Add(time.Hour * 24 * time.Duration(ttlDays))
 	link := Link{
 		Destination: dest,
 		Hash:        hash,
 		User:        u.Name,
 		CreatedAt:   now,
-		ExpiresAt:   now.Add(time.Hour * 24 * time.Duration(ttlDays)),
+		ExpiresAt:   expiresAt,
 	}
-	ior, err := db.Collection("links").InsertOne(nil, link)
-	if err != nil {
-		if mongo.IsDuplicateKeyError(err) {
-			return Link{}, fmt.Errorf("link create: %w", ErrDuplicated)
-		}
+	linkSaved, err := LinkGet(hash)
+	if err != nil && !errors.Is(err, ErrNotFound) {
 		return Link{}, fmt.Errorf("link create: %w", err)
 	}
-	link.Id = ior.InsertedID.(primitive.ObjectID)
+	if linkSaved.Id == primitive.NilObjectID {
+		ior, err := db.Collection("links").InsertOne(nil, link)
+		if err != nil {
+			if mongo.IsDuplicateKeyError(err) {
+				return Link{}, fmt.Errorf("link create: %w", ErrDuplicated)
+			}
+			return Link{}, fmt.Errorf("link create: %w", err)
+		}
+		link.Id = ior.InsertedID.(primitive.ObjectID)
+	} else {
+		if linkSaved.User != u.Name {
+			return Link{}, fmt.Errorf("link create: %w", ErrDuplicated)
+		}
+		filter := bson.D{
+			{"_id", linkSaved.Id},
+		}
+		update := bson.D{
+			{"$set", bson.D{
+				{"destination", dest},
+				{"expires_at", expiresAt},
+			}},
+		}
+		if _, err := db.Collection("links").UpdateOne(nil, filter, update); err != nil {
+			return Link{}, fmt.Errorf("link create: %w", err)
+		}
+	}
 	go func() {
 		db.Collection("links_log").InsertOne(nil, link)
 	}()
