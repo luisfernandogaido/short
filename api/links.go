@@ -77,7 +77,7 @@ func redirect(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, link.Destination, http.StatusMovedPermanently)
+		http.Redirect(w, r, link.Destination, http.StatusSeeOther)
 	default:
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
